@@ -1,5 +1,7 @@
 package com.zenya.aurora.util;
 
+import com.zenya.aurora.Aurora;
+import com.zenya.aurora.scheduler.TaskKey;
 import com.zenya.aurora.scheduler.TrackTPSTask;
 import com.zenya.aurora.storage.StorageFileManager;
 import org.bukkit.Bukkit;
@@ -63,7 +65,7 @@ public class ChatBuilder {
     public String build() {
         //Placeholders
         text = text == null ? "" : ChatColor.translateAlternateColorCodes('&', text);
-        text = text.replaceAll("%tps%", Float.toString(TrackTPSTask.INSTANCE.getAverageTps()));
+        text = text.replaceAll("%tps%", Float.toString(Aurora.getPlugin(Aurora.class).getTaskManager().getTask(TaskKey.TRACK_TPS_TASK, TrackTPSTask.class).getAverageTps()));
         text = player == null ? text : text.replaceAll("%world%", player.getWorld().getName());
         text = player == null ? text : text.replaceAll("%player%", player.getName());
 
@@ -99,13 +101,15 @@ public class ChatBuilder {
     }
 
     public void sendMessages(String node) {
-        if (StorageFileManager.getMessages().isList(node)) {
-            for (String item : StorageFileManager.getMessages().getList(node)) {
+        final StorageFileManager storageFileManager = Aurora.getPlugin(Aurora.class).getStorageFileManager();
+        if (storageFileManager.getMessages().isList(node)) {
+            for (String item : storageFileManager.getMessages().getList(node)) {
                 withText(item).sendMessage();
             }
-        } else {
-            withText(StorageFileManager.getMessages().getString(node)).sendMessage();
+            return;
         }
+
+        withText(storageFileManager.getMessages().getString(node)).sendMessage();
     }
 
     public static String translateColor(String str) {
